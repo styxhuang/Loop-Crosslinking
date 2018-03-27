@@ -2114,7 +2114,7 @@ system.pdb   3
 #include "posreinit.itp"
 #endif
 ; Include water topology
-#include "spce.itp"
+#include "oplsaa.ff/spc.itp"
 #ifdef POSRES_WATER
 ; Position restraint for each water oxygen
 [ position_restraints ]

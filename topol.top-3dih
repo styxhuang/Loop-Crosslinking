@@ -1921,7 +1921,9 @@ system.pdb   3
    186   184   185   1     106.400    364.8450     ;     H-     N-     H
 [ dihedrals ]
 ; ai  aj   ak  al  funct    phi0          cp      mult
-    81    84    92   136   1     180.000       2.008         2  ; dih      C-     C-     N-     C
+    81    84    92   136                                        ; dih      C-     C-     N-     C
+    92   136   135   130                                        ; dih      N-     C-     O-     C
+   135   136    92    84                                        ; dih      O-     C-     N-     C
 [ dihedrals ]
 ;  ai    aj    ak    al funct            c0            c1            c2            c3            c4            c5
     57    59    62    65   3   2.92880  -1.46440   0.20920  -1.67360   0.00000   0.00000 ; dih      C-     C-     C-     C

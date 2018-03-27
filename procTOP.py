@@ -47,7 +47,9 @@ def ChkErRow(df):
     
     for i in range(len(df)):
         spaceNum = df.iloc[i][0].count(' ')
-        if spaceNum > criNum + 10: #If doesn't update the data right, modify this number
+        if spaceNum > 50:
+            index.append(df.iloc[i]['index'])
+        elif spaceNum > criNum + 10: #If doesn't update the data right, modify this number
 #            print(df.iloc[i]['index'])
             index.append(df.iloc[i]['index'])
 #            index.append(df.iloc[i].index.values[0])
@@ -60,7 +62,6 @@ def ProcessString(index, df, category='bond'):
         tmp = df.iloc[index[i]].str.split()[0]
         if category == 'bond':
             str1 = "{:>8}{:>6}{:>4}{:>12}{:>13}{:>8}{:>7}{:>6}".format(tmp[0],tmp[1],a , b, c, tmp[2], tmp[3],tmp[4])
-            print(str1)
             df.iloc[index[i]] = str1
         elif category == 'angle':
             tmp1 = tmp[-3:]
@@ -69,20 +70,18 @@ def ProcessString(index, df, category='bond'):
                 coeff = dictAngle[tmp1].split(',')
             str1 = "{:>6}{:>6}{:>6}{:>4}{:>12}{:>12}{:>6}{:>7}{:>7}{:>6}".format(tmp[0],tmp[1],tmp[2], coeff[0], coeff[1], coeff[2], 
                     tmp[3], tmp[-3], tmp[-2],tmp[-1])
-            print(str1)
             df.iloc[index[i]] = str1
         elif category == 'dihedral':
-            print(index[i])
+#            print(index[i])
             tmp2 = tmp[-4:]
             tmp2 = ''.join(tmp2)
             if tmp2 in dictDihedral:
                 coeff = dictDihedral[tmp2].split(',')
                 str2 = "{:>6}{:>6}{:>6}{:>6}{:>4}{:>12}{:>12}{:>10}{:>3}{:>4}{:>8}{:>7}{:>7}{:>6}".format(tmp[0],tmp[1],tmp[2], tmp[3], coeff[0], coeff[1], coeff[2], coeff[3],
                     tmp[-6], tmp[-5], tmp[-4], tmp[-3], tmp[-2],tmp[-1])
-                print(str2)
                 df.iloc[index[i]] = str2
             else:
-                df = df.drop(index[i])
+                df.drop(index[i], inplace=True)
         else:
             print("Unknow data type")
 
@@ -98,7 +97,7 @@ def UpdateRow(index, df, category='bond'): #For now only bond section needs to b
 def DropRows(index, df): #For the empty dihedral, for now I just delete them
     tmp = df
     for i in range(len(index)):
-        tmp = tmp.drop([index[i]])
+        tmp = tmp.drop([index[i]], inplace=True)
     return tmp
 def BondProc(TOP):
     bondStartIdx = CheckIndex(TOP, 'bonds')
@@ -108,6 +107,7 @@ def BondProc(TOP):
         bondEndIdx = CheckIndex(TOP, 'constraints')
     bondsTOP = TOP.iloc[bondStartIdx[0]+2: bondEndIdx[0]].reset_index()
     bondIdx = ChkErRow(bondsTOP)
+    print(bondIdx)
     df = UpdateRow(bondIdx, TOP)
     
     return df
@@ -123,20 +123,17 @@ def AngleProc(TOP):
 
 def DihedralProc(df):
     dihIdx = CheckIndex(df, 'dihedral')
-    if len(dihIdx) >= 2:
-        print('Tst start')
-        index = list(range(dihIdx[0]+2, dihIdx[1]))
-        print(index)      
-        df = UpdateRow(index, df, 'dihedral')
+    if len(dihIdx) >= 2:        
         dihTOP = df.iloc[dihIdx[0]+2:dihIdx[1]].reset_index()
-        print(dihTOP)
+        index = ChkErRow(dihTOP)
+        finalDF = UpdateRow(index, df, 'dihedral')
     else:
         dihStart = dihIdx[0]
         dihEnd = CheckIndex(df, '; Include Position restraint file')
         dihTOP = df.iloc[dihStart+2:dihEnd[0]].reset_index()
-    
-    idx = ChkErRow(dihTOP)
-    finalDF = DropRows(idx, df)
+        
+        idx = ChkErRow(dihTOP)
+        finalDF = DropRows(idx, df)
     return finalDF
 
 def DelEmptyRow(df): #Doesn't work right, need to check again
@@ -165,7 +162,7 @@ def ExportTOP(filename, df):
     f.close()
 
 def Main(topName):
-#topName = 'topol.top'
+#    topName = 'init.top.bak'
     TOP = pd.read_csv(topName, sep="\n", header=None)
     bondProc = BondProc(TOP)
     angleProc = AngleProc(bondProc)
@@ -173,3 +170,5 @@ def Main(topName):
     #delEmptyRow = DelEmptyRow(dihedralProc)
     finalProc = ConstraintsProc(dihedralProc)
     ExportTOP('topol.top-end', finalProc)
+
+#Main('topol.top-3dih')

@@ -11,6 +11,9 @@ class MoleculeInfo(object):
         self.__name__ = ""
         self.__atoms__ = []
         self.__reactAtoms__ = []
+    
+    def resetAtom(self):
+        self.__atoms__ = []
         
     def setIndex(self, index):
         self.__index__ = index
@@ -36,17 +39,18 @@ class MoleculeInfo(object):
     def getReact(self):
         return self.__reactAtoms__
     
-    def outputInfo(self, index=0):
-        if (len(self.__reactAtoms__) == 0):
-            print("Index: ", self.__index__, "\tName: ", self.__name__, "\t", len(self.__atoms__), "\t")
-        else:
-            print("Index: ", self.__index__, "\tName: ", self.__name__, "\t", len(self.__atoms__), "\t", "Reactive atoms: ", self.__reactAtoms__[0])
-            if index == 1:
-                for i in range (len(self.__atoms__)):
-                    index = self.__atoms__[i].getIndex()
-                    name = self.__atoms__[i].getAtomName()
-                    subName = self.__atoms__[i].getSubName()
-                    print(index, "\t", name, "\t", subName)
+    def outputInfo(self, index=1):
+#        if (len(self.__reactAtoms__) == 0):
+#            print("Index: ", self.__index__, "\tName: ", self.__name__, "\t", len(self.__atoms__), "\t")
+#        else:
+#            print("Index: ", self.__index__, "\tName: ", self.__name__, "\t", len(self.__atoms__), "\t", "Reactive atoms: ", self.__reactAtoms__[0])
+#            if index == 1:
+        for i in range (len(self.__atoms__)):
+            index = self.__atoms__[i].getIndex()
+            name = self.__atoms__[i].getAtomName()
+            subName = self.__atoms__[i].getSubName()
+            subID = self.__atoms__[i].getSubID()
+            print(index, "\t", name, "\t", subName, "\t", subID)
                 
             
     

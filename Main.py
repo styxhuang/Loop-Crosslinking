@@ -4,7 +4,7 @@ Created on Mon Mar 26 15:30:38 2018
 
 @author: HuangMing
 
-run Main.py -m DGEBA -mL 25 -c PACM -cL 15 -b 50 -Nm 4 -Nc 2 -r1 3 21 -r2 0 14 -cf 15. -B 1 -BT 10
+run Main.py -m DGEBA -mL 25 -c PACM -cL 15 -b 50 -Nm 4 -Nc 2 -r1 3 21 -r2 0 14 -cf 15. -B 1 -BT 2
 """
 import argparse
 import fileinput
@@ -16,6 +16,7 @@ from shutil import move
 import crosslinking
 import procTOP
 import readGRO
+import readMol2
 
 PACKMOL = 'packmol.inp'
 SYSTEM = 'system'    
@@ -35,15 +36,15 @@ def Replace(filename, searchText, replaceText): #replace string in the file
         for line in file:
             print(line.replace(searchText, replaceText), end='')
     
-def MDSimulations(filename, cycle):
+def MDSimulations(filename, cycle, monoNum, crosNum):
     command1 = 'obabel -i mol2 -o mol2 -fi {} -O {}.mol2 -h'.format(filename, INI)
     command2 = 'echo "" >> {}.mol2'.format(INI)
     command3 = '{}topolbuild -dir {} -ff {} -n {}'.format(SOFT, DATA, FF, INI)
     command4 = '{} editconf -f {}.gro -o box.gro -box 5 5 5'.format(GROMACS, INI)
     command5 = '{} grompp -f em.mdp -c box.gro -o min -maxwarn 10'.format(GROMACS)
     command6 = '{} {} mdrun -deffnm min -v'.format(MPI, GROMACS)
-    command7 = '{} grompp -f nvt.mdp -c min.gro -o nvt -maxwarn 10'.format(GROMACS)
-    command8 = '{} {} mdrun -deffnm nvt -v'.format(MPI, GROMACS)
+#    command7 = '{} grompp -f nvt.mdp -c min.gro -o nvt -maxwarn 10'.format(GROMACS)
+#    command8 = '{} {} mdrun -deffnm nvt -v'.format(MPI, GROMACS)
     
     subprocess.call(command1, shell=True)
     subprocess.call(command2, shell=True)
@@ -66,26 +67,58 @@ def MDSimulations(filename, cycle):
     subprocess.call(command4, shell=True)
     subprocess.call(command5, shell=True)
     subprocess.call(command6, shell=True)
-    subprocess.call(command7, shell=True)
-    subprocess.call(command8, shell=True)
+#    subprocess.call(command7, shell=True)
+#    subprocess.call(command8, shell=True)
     
     os.mkdir('sim_result')
     move('min.gro', 'sim_result/min.gro')
     move('min.trr', 'sim_result/min.trr')
-    move('nvt.gro', 'sim_result/nvt.gro')
-    move('nvt.trr', 'sim_result/nvt.trr')
+#    move('nvt.gro', 'sim_result/nvt.gro')
+#    move('nvt.trr', 'sim_result/nvt.trr')
     move('topol.top', 'sim_result/topol.top')
-    GRO2MOL2(cycle)
+    GRO2MOL2(cycle, monoNum, crosNum)
 
-def GRO2MOL2(cycle):
+def GRO2MOL2(cycle, monoNum, crosNum):
+    os.chdir('sim_result')
+    top = 'topol.top'
+    
+    readGRO.Main('min', top, cycle)
+#    readGRO.Main('nvt', top, cycle)
+    command1 = 'obabel -i mol2 -o mol2 -fi min-stp-{}.mol2 -O min-dH.mol2 -d'.format(cycle)
+    subprocess.call(command1, shell=True)
+    
+    newInfo = readMol2.InfoInput('min-dH.mol2', monLen, crosLen, monoNum, crosNum, dih=False) #TODO: After new molecule split method, sth happens here
+#    readMol2.AtomInfoUpdate(oriInfo[0], newInfo[0], pos=True, charge=True)
+    crosslinking.ExportMOL2(newInfo[5][0], 'min-dH.mol2'.format(cycle), newInfo[5][1:], newInfo[0], newInfo[1])
+
+    copyfile('min-dH.mol2', '../../../tmp.mol2')
+    os.chdir('../../')
+#def GRO2MOL2(oriInfo, cycle, monLen, crosLen, update=True):
+#    os.chdir('sim_result')
+#    top = 'topol.top'
+#    
+#    readGRO.Main('min', top, cycle)
+##    readGRO.Main('nvt', top, cycle)
+#    command1 = 'obabel -i mol2 -o mol2 -fi min-stp-{}.mol2 -O min-dH.mol2 -d'.format(cycle)
+#    subprocess.call(command1, shell=True)
+#    
+#    newInfo = readMol2.InfoInput('min-dH.mol2', monLen, crosLen, dih=False)
+#    readMol2.AtomInfoUpdate(oriInfo[0], newInfo[0], pos=True, charge=True)
+#    crosslinking.ExportMOL2(newInfo[5][0], 'min-dH.mol2'.format(cycle), newInfo[5][1:], oriInfo[0], oriInfo[1])
+#
+#    copyfile('min-dH.mol2', '../../../tmp.mol2')
+#    os.chdir('../../')
+
+def preProcess(fileName, cycle):
+    MDSimulations(fileName, cycle)
     os.chdir('sim_result')
     top = 'topol.top'
     readGRO.Main('min', top, cycle)
-    readGRO.Main('nvt', top, cycle)
-    command1 = 'obabel -i mol2 -o mol2 -fi nvt-stp-{}.mol2 -O nvt-dH.mol2 -d'.format(cycle)
+    command1 = 'obabel -i mol2 -o mol2 -fi min-stp-{}.mol2 -O min-dH.mol2 -d'.format(cycle)
     subprocess.call(command1, shell=True)
-    copyfile('nvt-dH.mol2', '../../../tmp.mol2')
+    copyfile('min-dH.mol2', '../../../tmp.mol2')
     os.chdir('../../')
+    
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = 'Start Crosslink process')
@@ -180,6 +213,8 @@ if __name__ == "__main__":
 ##### Start crosslinking loop #####
     bond_cycle = args.bond
     bonds_total = args.Bonds
+    monoNum = args.num1
+    crosNum = args.num2
     
     num = int(bonds_total/bond_cycle) + 1
     cycle = 0
@@ -199,8 +234,18 @@ if __name__ == "__main__":
             crosR = [int(args.r2[0][0]), int(args.r2[0][1])]
             cutoff = float(args.cutoff)
             bondsNum = int(args.bond)
-            crosslinking.main(fileName, outputName, monLen, crosLen, monR, crosR, cutoff, bondsNum)
-            MDSimulations(outputName, cycle)
+            
+#            if i == 0:
+#                preProcess(fileName, cycle)
+#            else:
+            #Bond generation, info includes atomList, bondList
+            oriInfo = crosslinking.main(fileName, outputName, monLen, crosLen, monR, crosR, cutoff, bondsNum, cycle, monoNum, crosNum)
+        
+            #mol2 --> gro file, excute md simulations
+            MDSimulations(outputName, cycle, monoNum, crosNum)
+        
+            #convert gro --> mol2, info includes new atomsList, and bondsList
+#            GRO2MOL2(oriInfo, cycle, monLen, crosLen)
             
             os.chdir('../')
         else:

@@ -6,6 +6,7 @@
 ;
 ; The force field files to be included
 #include "oplsaa.ff/forcefield.itp"
+
  [ moleculetype ]
 ; name  nrexcl
 system.pdb   3
@@ -305,6 +306,7 @@ system.pdb   3
   291    opls_169     4       LIG       O  109  -0.38870  15.99940       ;  -0.2099000
   292    opls_170     4       LIG       H  109   0.20990   1.00800       ;   0.0000000
 ; total molecule charge =   0.0000000
+
  [ bonds ]
 ;   ai  aj   funct      b0          kb
       59    62   1     0.15290      224262.       ;     C-     C
@@ -443,7 +445,7 @@ system.pdb   3
       43    46   1     0.15290      224262.       ;     C-     C
       48    46   1     0.15290      224262.       ;     C-     C
       46    52   1     0.14100      267776.       ;     C-     O
-     136    92   1     0.14700      268278.       ;     C-     N
+     136    92                                    ;     C-     N
        1     2   1     0.10900      284512.       ;     C-     H
        1     3   1     0.10900      284512.       ;     C-     H
        1     4   1     0.10900      284512.       ;     C-     H
@@ -606,6 +608,17 @@ system.pdb   3
      181   183   1     0.10900      284512.       ;     C-     H
      184   185   1     0.10100      363171.       ;     N-     H
      184   186   1     0.10100      363171.       ;     N-     H
+
+ [ constraints ]
+     145     138   2     0.19305       ;     H       C
+     247     244   2     0.19305       ;     H       C
+       8       5   2     0.19305       ;     H       C
+     292     285   2     0.19305       ;     H       C
+      98     101   2     0.19305       ;     C       H
+     191     194   2     0.19305       ;     C       H
+     239     232   2     0.19305       ;     H       C
+      46      53   2     0.19305       ;     C       H
+
  [ pairs ]
       57      65  1       ;     C-     C
       57      63  1       ;     C-     H
@@ -1373,6 +1386,7 @@ system.pdb   3
      135      93  1       ;     O-     H
      137      84  1       ;     H-     C
      137      93  1       ;     H-     H
+
 [ angles ]
 ; ai  aj  ak  funct      th0         cth
     57    59    62   1     112.700    488.2730     ;     C-     C-     C
@@ -1516,7 +1530,7 @@ system.pdb   3
     84    86    87   1     110.700    313.8000     ;     C-     C-     H
     84    86    88   1     110.700    313.8000     ;     C-     C-     H
     85    84    92   1     109.500    292.8800     ;     H-     C-     N
-    84    92   136   1     110.900    535.5520     ;     C-     N-     C
+    84    92   136                                 ;     C-     N-     C
     84    92    93   1     109.500    292.8800     ;     C-     N-     H
    177   176   184   1     109.500    292.8800     ;     H-     C-     N
    176   184   185   1     109.500    292.8800     ;     C-     N-     H
@@ -1532,11 +1546,11 @@ system.pdb   3
    144   138   139   1     109.500    292.8800     ;     O-     C-     H
    139   138   136   1     110.700    313.8000     ;     H-     C-     C
    138   136   135   1     109.500    418.4000     ;     C-     C-     O
-   138   136    92   1     110.380    553.9616     ;     C-     C-     N
+   138   136    92                                 ;     C-     C-     N
    138   136   137   1     110.700    313.8000     ;     C-     C-     H
-    92   136   135   1     110.380    553.9616     ;     N-     C-     O
+    92   136   135                                 ;     N-     C-     O
    137   136   135   1     109.500    292.8800     ;     H-     C-     O
-   136   135   130   1     117.600    522.1632     ;     C-     O-     C
+   136   135   130                                 ;     C-     O-     C
    135   130   128   1     120.000    585.7600     ;     O-     C-     C
    135   130   131   1     120.000    585.7600     ;     O-     C-     C
    131   130   128   1     120.000    527.1840     ;     C-     C-     C
@@ -1841,8 +1855,8 @@ system.pdb   3
     48    46    47   1     110.700    313.8000     ;     C-     C-     H
     47    46    52   1     109.500    292.8800     ;     H-     C-     O
     46    52    53   1     108.500    460.2400     ;     C-     O-     H
-   137   136    92   1     109.920    413.3792     ;     H-     C-     N
-   136    92    93   1     109.920    394.1328     ;     C-     N-     H
+   137   136    92                                 ;     H-     C-     N
+   136    92    93                                 ;     C-     N-     H
      3     1     2   1     107.800    276.1440     ;     H-     C-     H
      4     1     2   1     107.800    276.1440     ;     H-     C-     H
      4     1     3   1     107.800    276.1440     ;     H-     C-     H
@@ -1919,9 +1933,13 @@ system.pdb   3
    180   178   179   1     107.800    276.1440     ;     H-     C-     H
    183   181   182   1     107.800    276.1440     ;     H-     C-     H
    186   184   185   1     106.400    364.8450     ;     H-     N-     H
+
 [ dihedrals ]
 ; ai  aj   ak  al  funct    phi0          cp      mult
-    81    84    92   136   1     180.000       2.008         2  ; dih      C-     C-     N-     C
+    81    84    92   136                                        ; dih      C-     C-     N-     C
+    92   136   135   130                                        ; dih      N-     C-     O-     C
+   135   136    92    84                                        ; dih      O-     C-     N-     C
+
 [ dihedrals ]
 ;  ai    aj    ak    al funct            c0            c1            c2            c3            c4            c5
     57    59    62    65   3   2.92880  -1.46440   0.20920  -1.67360   0.00000   0.00000 ; dih      C-     C-     C-     C
@@ -2058,6 +2076,7 @@ system.pdb   3
     42    43    46    48   3   2.87441   0.58158   2.09200  -5.54799   0.00000   0.00000 ; dih      O-     C-     C-     C
     49    48    46    43   3   0.62760   1.88280   0.00000  -2.51040   0.00000   0.00000 ; dih      H-     C-     C-     C
     43    46    52    53   3  -0.44350   3.83255   0.72801  -4.11705   0.00000   0.00000 ; dih      C-     C-     O-     H
+
 [ dihedrals ]
 ; ai  aj   ak  al  funct    phi0          cp      mult
     13    21    12    14   1     180.000       4.602   2        ; imp      C-     C-     O-     C
@@ -2108,24 +2127,30 @@ system.pdb   3
    276   277   274   281   1     180.000       4.602   2        ; imp      C-     C-     C-     O
    277   279   276   278   1     180.000       4.602   2        ; imp      C-     C-     C-     H
    279   271   277   280   1     180.000       4.602   2        ; imp      C-     C-     C-     H
+
 ; Include Position restraint file
 ; WARNING: Position restraints and distance restraints ought not be done together
 #ifdef POSRES
 #include "posreinit.itp"
 #endif
+
 ; Include water topology
 #include "oplsaa.ff/spc.itp"
+
 #ifdef POSRES_WATER
 ; Position restraint for each water oxygen
 [ position_restraints ]
 ;  i funct       fcx        fcy        fcz
    1    1       1000       1000       1000
 #endif
-; Include generic topology for oplsaa.ff/ions
-#include "oplsaa.ff/ions.itp"
+
+; Include generic topology for ions
+#include "ions.itp"
+
  [ system ]
 ; title from mol2 input
 system.pdb
+
  [ molecules ]
 ; molecule name    nr.
 system.pdb           1
