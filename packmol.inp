@@ -1,0 +1,14 @@
+tolerance 2.0
+filetype pdb
+output FFF.pdb
+structure MMM.pdb
+  number NUM1
+ inside box 0 0 0 SIZE SIZE SIZE
+end structure
+
+structure CCC.pdb
+  number NUM2
+  inside box 0 0 0 SIZE SIZE SIZE
+end structure
+
+seed 20440
