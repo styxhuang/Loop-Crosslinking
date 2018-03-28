@@ -9,6 +9,9 @@ import pandas as pd
 import AtomClass as Atom
 import BondClass as Bond
 import crosslinking as MOL2
+import subprocess 
+from shutil import copyfile
+
 def CheckIndex(df, keyword):
     index = df.index[df[0].str.contains(keyword) == True].tolist()
     return index
@@ -103,11 +106,21 @@ def ExportMol2(TOP, atomsNum, bondsNum, atoms, bondList, cycle, fileName):
     atomList = atoms[0]
     name = TOP.iloc[-1][0].split()[0]
     outputName = '{}-stp-{}.mol2'.format(fileName, cycle)
+#    command1 = 'obabel -i mol2 -o mol2 -fi {} -O nvt-dH.mol2 -d'.format(outputName)
+    
     content = [' {:} {:} {:} {:} {:}'.format(atomsNum, bondsNum, 0, 0, 0), 'SMALL', 'GASTEIGER']
     MOL2.ExportMOL2(name, outputName, content, atomList, bondList)
-    
+    return content
+
 ###############################################################################
 def Main(fileName, topName, cycle):
+        
+#monLen = 25
+#crosLen = 15
+#fileName = 'min'
+#topName = 'topol.top'
+#cycle = 1
+
     groName = '{}.gro'.format(fileName)
     topName = topName
     
@@ -119,5 +132,5 @@ def Main(fileName, topName, cycle):
     bonds = BondInfoInput(a[2], atoms[1])
     atomsNum = len(atoms[0])
     bondsNum = len(bonds)
-    ExportMol2(TOP, atomsNum, bondsNum, atoms, bonds, cycle, fileName)
-    
+    content = ExportMol2(TOP, atomsNum, bondsNum, atoms, bonds, cycle, fileName)
+    return atoms[0], bonds, content

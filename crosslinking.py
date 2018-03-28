@@ -13,6 +13,7 @@ import random
 import AtomClass as Atom
 import MoleculeClass as Mol
 import BondClass as Bond
+import readMol2
 
 def InfoInput(n, a, AtomInfo):
     atom = AtomInfo
@@ -162,19 +163,25 @@ def GenBond(atom1, atom2, atomList, bondList, molList, bondLimit):
     atom2Index = atom2.getIndex()
     atom1Bond = CountBond(atom1Index, bondList) 
     atom2Bond = CountBond(atom2Index, bondList)
-#    print("atoms we want to bond with: {:}, {:}".format(atom1Index, atom2Index))
+    print("atoms we want to bond with: {:}, {:}".format(atom1Index, atom2Index))
     #print("mol list", molList)
     cond1 = Criteria(atom1Bond, atom1.getAtomName(), atomList)#atom1, atom2 which index starts from 0
     cond2 = Criteria(atom2Bond, atom2.getAtomName(), atomList)
     cond3 = Criteria2(atom1, atom2, molList, bondList)
     cond4 = Criteria3(bondLimit, bondList)
     print(cond1, cond2, cond3, cond4, len(bondList))
+    print('Check if not exceed C bond limit:\t\t\t', cond1)
+    print('Check if not exceed N bond limit:\t\t\t', cond2)
+    print('Check if not generate bond in one molecules:\t\t', cond3)
+    print('Check if not exceed bonds creation limit:\t\t', cond4)
+    
     if cond1 and cond2 and cond3 and cond4:
         b = Bond.BondsInfo()
         b.setIndex(index)
         b.setAtom(atom2.getIndex(), atom1.getIndex())
         b.setBondType(1) #Bondtype 1 means C3 bond
         bondList.append(b)
+        print('Bonds number:\t\t\t', len(bondList))
     
 def CountBond(atomIndex, bondList):
     bonds = []
@@ -304,8 +311,6 @@ def Crosslink(cutoff, atomList, bondList, molList, monList, crosList, bondsNum):
     cros = GetLabelAtom(crosList) #I suppose that crosslinker govern the crosslinking process
     random.shuffle(mon)
     random.shuffle(cros)
-#    print("monIndex: ", mon)
-#    print("crosIndex: ", cros)
     print("Bonds length: ", len(bondList))
     bondLimit = len(bondList) + bondsNum
     for i in range(len(cros)):
@@ -317,87 +322,41 @@ def Crosslink(cutoff, atomList, bondList, molList, monList, crosList, bondsNum):
                 monIndex = int(mon[ii])-1
                 atomCross = atomList[crosIndex]
                 atomMon = atomList[monIndex]
-#                print('Cros: {}, Mono: {}'.format(atomCross.getIndex(), atomMon.getIndex()))
                 crosCoord = atomCross.getPos()
                 monCoord = atomMon.getPos()
                 dist = CalDist(crosCoord, monCoord)
-#                print(dist)
                 if dist <= cutoff:
                     GenBond(atomCross, atomMon, atomList, bondList, molList, bondLimit)
                 else:
                     continue
                 
-            
-def main(filename, outputName, monLen, crosLen, monR, crosR, cutoff, bondsNum):
-    f = open(filename)
-    content = f.readlines()
-    start_atom_idx = content.index("@<TRIPOS>ATOM\n")
-    start_bond_idx = content.index("@<TRIPOS>BOND\n")
-    f.close()
-    if outputName in os.listdir():
-        print("Yes")
-        os.unlink(outputName)
-
-############################################################################
-    df = pd.read_csv(filename, sep="\n", header=None)
-    name = df.iloc[1][0]
-    content_1 = df.iloc[2][0]
-    content_2 = df.iloc[3][0]
-    content_3 = df.iloc[4][0]
-    basicPara = [content_1, content_2, content_3]
-#    print('tst-3: ',basicPara)
-############################################################################
-#    Atom_info = df[start_atom_idx+1:start_bond_idx].reset_index(drop=True)
-#    Bond_info = df[start_bond_idx+1:len(content)].reset_index(drop=True)
-        #drop keyword means if the old index save as a column
-    atomList = []
-    bondList = []
-    monList = []
-    crosList = []
-    #Init Atom info
-    atomsDataframe = df.iloc[start_atom_idx:start_bond_idx-1][0].str.split()
-    bondsDataframe = df.iloc[start_bond_idx:][0].str.split()
+def main(fileName, outputName, monLen, crosLen, monR, crosR, cutoff, bondsNum, cycle, monoNum, crosNum):    
+    info = readMol2.InfoInput(fileName, monLen, crosLen, cycle, monoNum, crosNum)
+    name = info[5][0]
+    basicPara = info[5][1:]
+    SetReact(info[3], monR)
+    SetReact(info[4], crosR)
     
-    for i in range(len(atomsDataframe)):
-        a = Atom.AtomsInfo()
-        atom = atomsDataframe.iloc[i]             
-        for ii in range(len(atom)): #loop each atom's info
-            InfoInput(ii, a, atom)            
-        atomList.append(a)
-    
-    for i in range(len(bondsDataframe)):
-        b = Bond.BondsInfo()
-        bond = bondsDataframe.iloc[i]
-        for ii in range(len(bond)):
-            BondInfoInput(ii, b, bond)
-        bondList.append(b)
-    a = SortSubID(atomList)
-
-    molList = a
-    for i in range(len(a)):
-        length = len(a[i].getAtoms())
-        if length == monLen:
-            monList.append(a[i])
-        elif length == crosLen:
-            crosList.append(a[i])
-        else:
-            print(crosLen)
-            print("Calculation of the molecule length has met some errors")
-            
-    #Bond_info
+    ####output molecule list
+    molList = info[2]
+    for i in range(len(molList)):
+        molList[i].outputInfo()
         
-    b=MonCros(monLen, crosLen, a)
+    Crosslink(cutoff, info[0], info[1], info[2], info[3], info[4], bondsNum)
     
-    mon = b[0]
-    cro = b[1]
-    SetReact(mon, monR)
-    SetReact(cro, crosR)
-    Crosslink(cutoff, atomList, bondList, molList, mon, cro, bondsNum)
-    
-    atoms = len(atomList)
-    bonds = len(bondList)
-#    print("tst-1: ",basicPara)
+    atoms = len(info[0])
+    bonds = len(info[1])
     content_1 = '{:} {:} {:} {:} {:}'.format(str(atoms), str(bonds), str(0), str(0), str(0))
     basicPara[0] = content_1
-#    print("tst-2: ",basicPara)
-    ExportMOL2(name, outputName, basicPara, atomList, bondList)
+    ExportMOL2(name, outputName, basicPara, info[0], info[1])
+    
+    return info[0], info[1]
+
+#monR = [3, 21]
+#crosR = [0, 14]
+#a = main('system.mol2', 'tst.mol2', 25, 15, monR, crosR, 15., 2, 1, 25, 15)
+#newInfo = readMol2.InfoInput('sys-bond.mol2', 25, 15)
+#newAtoms = newInfo[0]
+
+#readMol2.AtomInfoUpdate(a[0], newAtoms, pos=True)
+#ExportMOL2('123123', 'tst-2.mol2', 'tst', a[0],a[1])
