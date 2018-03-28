@@ -174,7 +174,6 @@ def GenBond(atom1, atom2, atomList, bondList, molList, bondLimit):
     print('Check if not exceed N bond limit:\t\t\t', cond2)
     print('Check if not generate bond in one molecules:\t\t', cond3)
     print('Check if not exceed bonds creation limit:\t\t', cond4)
-    
     if cond1 and cond2 and cond3 and cond4:
         b = Bond.BondsInfo()
         b.setIndex(index)
@@ -182,6 +181,8 @@ def GenBond(atom1, atom2, atomList, bondList, molList, bondLimit):
         b.setBondType(1) #Bondtype 1 means C3 bond
         bondList.append(b)
         print('Bonds number:\t\t\t', len(bondList))
+    else:
+        pass
     
 def CountBond(atomIndex, bondList):
     bonds = []
@@ -314,21 +315,24 @@ def Crosslink(cutoff, atomList, bondList, molList, monList, crosList, bondsNum):
     print("Bonds length: ", len(bondList))
     bondLimit = len(bondList) + bondsNum
     for i in range(len(cros)):
-        for ii in range(len(mon)):
-            crosIndex = int(cros[i])-1
-            if crosIndex >= len(atomList):
-                break
-            else:                
-                monIndex = int(mon[ii])-1
-                atomCross = atomList[crosIndex]
-                atomMon = atomList[monIndex]
-                crosCoord = atomCross.getPos()
-                monCoord = atomMon.getPos()
-                dist = CalDist(crosCoord, monCoord)
-                if dist <= cutoff:
-                    GenBond(atomCross, atomMon, atomList, bondList, molList, bondLimit)
-                else:
-                    continue
+        bonds = len(bondList)
+        print('bonds:\t{}, bondsLimit:\t{}'.format(bonds, bondLimit))
+        if bonds < bondLimit:
+            for ii in range(len(mon)):
+                crosIndex = int(cros[i])-1
+                if crosIndex >= len(atomList):
+                    break
+                else:                
+                    monIndex = int(mon[ii])-1
+                    atomCross = atomList[crosIndex]
+                    atomMon = atomList[monIndex]
+                    crosCoord = atomCross.getPos()
+                    monCoord = atomMon.getPos()
+                    dist = CalDist(crosCoord, monCoord)
+                    if dist <= cutoff:
+                        GenBond(atomCross, atomMon, atomList, bondList, molList, bondLimit)
+                    else:
+                        continue
                 
 def main(fileName, outputName, monLen, crosLen, monR, crosR, cutoff, bondsNum, cycle, monoNum, crosNum):    
     info = readMol2.InfoInput(fileName, monLen, crosLen, cycle, monoNum, crosNum)
