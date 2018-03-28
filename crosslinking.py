@@ -163,19 +163,25 @@ def GenBond(atom1, atom2, atomList, bondList, molList, bondLimit):
     atom2Index = atom2.getIndex()
     atom1Bond = CountBond(atom1Index, bondList) 
     atom2Bond = CountBond(atom2Index, bondList)
-#    print("atoms we want to bond with: {:}, {:}".format(atom1Index, atom2Index))
+    print("atoms we want to bond with: {:}, {:}".format(atom1Index, atom2Index))
     #print("mol list", molList)
     cond1 = Criteria(atom1Bond, atom1.getAtomName(), atomList)#atom1, atom2 which index starts from 0
     cond2 = Criteria(atom2Bond, atom2.getAtomName(), atomList)
     cond3 = Criteria2(atom1, atom2, molList, bondList)
     cond4 = Criteria3(bondLimit, bondList)
     print(cond1, cond2, cond3, cond4, len(bondList))
+    print('Check if not exceed C bond limit:\t\t\t', cond1)
+    print('Check if not exceed N bond limit:\t\t\t', cond2)
+    print('Check if not generate bond in one molecules:\t\t', cond3)
+    print('Check if not exceed bonds creation limit:\t\t', cond4)
+    
     if cond1 and cond2 and cond3 and cond4:
         b = Bond.BondsInfo()
         b.setIndex(index)
         b.setAtom(atom2.getIndex(), atom1.getIndex())
         b.setBondType(1) #Bondtype 1 means C3 bond
         bondList.append(b)
+        print('Bonds number:\t\t\t', len(bondList))
     
 def CountBond(atomIndex, bondList):
     bonds = []
@@ -330,22 +336,27 @@ def main(fileName, outputName, monLen, crosLen, monR, crosR, cutoff, bondsNum, c
     basicPara = info[5][1:]
     SetReact(info[3], monR)
     SetReact(info[4], crosR)
+    
+    ####output molecule list
+    molList = info[2]
+    for i in range(len(molList)):
+        molList[i].outputInfo()
+        
     Crosslink(cutoff, info[0], info[1], info[2], info[3], info[4], bondsNum)
     
     atoms = len(info[0])
     bonds = len(info[1])
     content_1 = '{:} {:} {:} {:} {:}'.format(str(atoms), str(bonds), str(0), str(0), str(0))
     basicPara[0] = content_1
-    print("tst-2: ",basicPara)
     ExportMOL2(name, outputName, basicPara, info[0], info[1])
     
     return info[0], info[1]
 
 #monR = [3, 21]
 #crosR = [0, 14]
-#a = main('system.mol2', 'tst.mol2', 25, 15, monR, crosR, 15., 2)
+#a = main('system.mol2', 'tst.mol2', 25, 15, monR, crosR, 15., 2, 1, 25, 15)
 #newInfo = readMol2.InfoInput('sys-bond.mol2', 25, 15)
 #newAtoms = newInfo[0]
-#
+
 #readMol2.AtomInfoUpdate(a[0], newAtoms, pos=True)
 #ExportMOL2('123123', 'tst-2.mol2', 'tst', a[0],a[1])

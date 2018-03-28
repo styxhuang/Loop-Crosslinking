@@ -58,6 +58,7 @@ def ProcessString(index, df, category='bond'):
     a = '1'             
     b = '0.14700'
     c = '268278.'
+    missingList = []
     for i in range(len(index)):
         tmp = df.iloc[index[i]].str.split()[0]
         if category == 'bond':
@@ -72,8 +73,9 @@ def ProcessString(index, df, category='bond'):
                     tmp[3], tmp[-3], tmp[-2],tmp[-1])
             df.iloc[index[i]] = str1
         elif category == 'dihedral':
-#            print(index[i])
+            print('Errow row: ', index[i])
             tmp2 = tmp[-4:]
+            print('Atoms combination: ',tmp2)
             tmp2 = ''.join(tmp2)
             if tmp2 in dictDihedral:
                 coeff = dictDihedral[tmp2].split(',')
@@ -81,9 +83,13 @@ def ProcessString(index, df, category='bond'):
                     tmp[-6], tmp[-5], tmp[-4], tmp[-3], tmp[-2],tmp[-1])
                 df.iloc[index[i]] = str2
             else:
-                df.drop(index[i], inplace=True)
+                print('drop index: ', index[i])
+                missingList.append(index[i])
+#                df.drop(index[i], inplace=True)
         else:
             print("Unknow data type")
+    if len(missingList) != 0:
+        df.drop(missingList, inplace=True)
 
 def UpdateRow(index, df, category='bond'): #For now only bond section needs to be updated, or the coefficient is for bond
     if category == 'bond':
@@ -107,7 +113,7 @@ def BondProc(TOP):
         bondEndIdx = CheckIndex(TOP, 'constraints')
     bondsTOP = TOP.iloc[bondStartIdx[0]+2: bondEndIdx[0]].reset_index()
     bondIdx = ChkErRow(bondsTOP)
-    print(bondIdx)
+#    print(bondIdx)
     df = UpdateRow(bondIdx, TOP)
     
     return df
@@ -123,9 +129,11 @@ def AngleProc(TOP):
 
 def DihedralProc(df):
     dihIdx = CheckIndex(df, 'dihedral')
+    print('idx= ', dihIdx)
     if len(dihIdx) >= 2:        
         dihTOP = df.iloc[dihIdx[0]+2:dihIdx[1]].reset_index()
         index = ChkErRow(dihTOP)
+        print('error row index: ', index)
         finalDF = UpdateRow(index, df, 'dihedral')
     else:
         dihStart = dihIdx[0]
@@ -162,7 +170,7 @@ def ExportTOP(filename, df):
     f.close()
 
 def Main(topName):
-#    topName = 'init.top.bak'
+#topName = 'topol.top'
     TOP = pd.read_csv(topName, sep="\n", header=None)
     bondProc = BondProc(TOP)
     angleProc = AngleProc(bondProc)
@@ -171,4 +179,4 @@ def Main(topName):
     finalProc = ConstraintsProc(dihedralProc)
     ExportTOP('topol.top-end', finalProc)
 
-#Main('topol.top-3dih')
+#Main('topol.top')

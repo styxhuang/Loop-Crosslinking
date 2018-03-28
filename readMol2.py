@@ -71,33 +71,58 @@ def MolInfoInput(index, start, end, name, atomsList):
         mol.setAtoms(atomsList[i])
     return mol
     
-def Atom2Mol(atomsList):
-    moleculeList = []
-    
-    atoms = atomsList #List content is atoms
-    iniID = atoms[0].getSubID()
-    index = 0
-    ini = 0
-    for i in range(len(atoms)):
-        subID = atoms[i].getSubID()
-        if subID == iniID:
-            if i == len(atomsList) - 1:
-                index +=1
-                name = "mol" +str(index)
-                mol = MolInfoInput(index, ini, len(atomsList), name, atomsList)
-                moleculeList.append(mol)
-                return moleculeList
-            else:
-                continue
-        else:
-            index +=1
-            name = "mol" + str(index)
-            mol = MolInfoInput(index, ini, i, name, atomsList)
-            moleculeList.append(mol)
-            ini = i
-            iniID = subID
-    return moleculeList    
-    
+#def Atom2Mol(atomsList):
+#    moleculeList = []
+#    
+#    atoms = atomsList #List content is atoms
+#    iniID = atoms[0].getSubID()
+#    index = 0
+#    ini = 0
+#    for i in range(len(atoms)):
+#        subID = atoms[i].getSubID()
+#        if subID == iniID:
+#            if i == len(atomsList) - 1:
+#                index +=1
+#                name = "mol" +str(index)
+#                mol = MolInfoInput(index, ini, len(atomsList), name, atomsList)
+#                moleculeList.append(mol)
+#                return moleculeList
+#            else:
+#                continue
+#        else:
+#            index +=1
+#            name = "mol" + str(index)
+#            mol = MolInfoInput(index, ini, i, name, atomsList)
+#            moleculeList.append(mol)
+#            ini = i
+#            iniID = subID
+#    return moleculeList    
+def GetTopMol(index, atomlist, monLen, crosLen):
+    startAtom = atomlist[0].getAtomName()
+    if (startAtom == 'C'):
+        idx = monLen
+        name = "mol" + str(index)
+        mol = MolInfoInput(index, 0, idx, name, atomlist)
+    elif (startAtom == 'N'):
+        idx = crosLen
+        name = "mol" + str(index)
+        mol = MolInfoInput(index, 0, idx, name, atomlist)
+    return mol, idx
+
+def Atom2Mol(atomslist, monLen, crosLen): #Still a hard code, specify for the mono start with 'C', cros start with 'N', need to update
+    moleculelist = []
+    i = 0
+    num = 1
+    while i < len(atomslist):
+#        print('num: ', num)
+#        print('atomsNum: ', i)
+        info = GetTopMol(num, atomslist[i:], monLen, crosLen)
+        mol = info[0]
+        moleculelist.append(mol)
+        num += 1
+        i += info[1]
+    return moleculelist
+
 def ReadMol2(fileName):
     df = pd.read_csv(fileName, sep='\n', header=None)
     return df
@@ -133,21 +158,21 @@ def InfoInput(fileName, monLen, crosLen, monoNum, crosNum, dih=True):
         bondsList.append(b)
     
     if dih:
-        moleculesList = Atom2Mol(atomsList)
-        if len(moleculesList) < int(monoNum) + int(crosNum):
-            atomsList = []
-            for i in range(len(moleculesList)):    
-                atomsNum = len(moleculesList[i].getAtoms())
-                if atomsNum != monLen & atomsNum != crosLen:
-                    mol = SplitMolecule(moleculesList[i], monLen, crosLen)
-                    atomsList.append(mol.getAtoms())
-                    print("after split")
-                    moleculesList[i] = mol
-                    moleculesList[i].outputInfo()
-                else:
-                    atomsList.append(moleculesList[i].getAtoms())
-            atomsList = list(itertools.chain.from_iterable(atomsList))
-            moleculesList = Atom2Mol(atomsList)    
+        moleculesList = Atom2Mol(atomsList, monLen, crosLen)
+#        if len(moleculesList) < int(monoNum) + int(crosNum):
+#            atomsList = []
+#            for i in range(len(moleculesList)):    
+#                atomsNum = len(moleculesList[i].getAtoms())
+#                if atomsNum != monLen & atomsNum != crosLen:
+#                    mol = SplitMolecule(moleculesList[i], monLen, crosLen)
+#                    atomsList.append(mol.getAtoms())
+#                    print("after split")
+#                    moleculesList[i] = mol
+#                    moleculesList[i].outputInfo()
+#                else:
+#                    atomsList.append(moleculesList[i].getAtoms())
+#            atomsList = list(itertools.chain.from_iterable(atomsList))
+#            moleculesList = Atom2Mol(atomsList)    
 
 
         for i in range(len(moleculesList)):
@@ -158,11 +183,13 @@ def InfoInput(fileName, monLen, crosLen, monoNum, crosNum, dih=True):
                 crosList.append(moleculesList[i])
             else:
                 print("Calculation of the molecule length met some error, please check!")
-                print('monLen: ', monLen)
-                print('crosLen: ', crosLen)
-                print('length: ', length)
+#                print('monLen: ', monLen)
+#                print('crosLen: ', crosLen)
+#                print('length: ', length)
+#                return atomsList, bondsList, moleculesList, monList, crosList, basicPara
+
                 sys.exit()         
-        return atomsList, bondsList, moleculesList, monList, crosList, basicPara
+    return atomsList, bondsList, moleculesList, monList, crosList, basicPara
 
 def SplitMolecule(molecule, monLen, crosLen):
 #    molecule.outputInfo()

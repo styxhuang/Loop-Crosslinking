@@ -42,7 +42,7 @@ def MDSimulations(filename, cycle, monoNum, crosNum):
     command3 = '{}topolbuild -dir {} -ff {} -n {}'.format(SOFT, DATA, FF, INI)
     command4 = '{} editconf -f {}.gro -o box.gro -box 5 5 5'.format(GROMACS, INI)
     command5 = '{} grompp -f em.mdp -c box.gro -o min -maxwarn 10'.format(GROMACS)
-    command6 = '{} {} mdrun -deffnm min -v'.format(MPI, GROMACS)
+    command6 = '{} {} mdrun -deffnm min'.format(MPI, GROMACS)
 #    command7 = '{} grompp -f nvt.mdp -c min.gro -o nvt -maxwarn 10'.format(GROMACS)
 #    command8 = '{} {} mdrun -deffnm nvt -v'.format(MPI, GROMACS)
     
@@ -186,10 +186,10 @@ if __name__ == "__main__":
     Replace(PACKMOL, 'SIZE', str(args.box))
     Replace(PACKMOL, 'NUM1', str(args.num1))
     Replace(PACKMOL, 'NUM2', str(args.num2))
-    command1 = "obabel -i mol2 -o pdb -fi {}.mol2 -O {}.pdb".format(args.mono, args.mono)
-    command2 = "obabel -i mol2 -o pdb -fi {}.mol2 -O {}.pdb".format(args.cross, args.cross)
+    command1 = "obabel -i mol2 -o pdb -fi {}.mol2 -O {}.pdb > obabel.log".format(args.mono, args.mono)
+    command2 = "obabel -i mol2 -o pdb -fi {}.mol2 -O {}.pdb >> obabel.log".format(args.cross, args.cross)
     command3 = "packmol < packmol.inp > pack.log"
-    command4 = "obabel -i pdb -o mol2 -fi {}.pdb -O {}.mol2 -d".format(SYSTEM, SYSTEM)
+    command4 = "obabel -i pdb -o mol2 -fi {}.pdb -O {}.mol2 -d >> obabel.log".format(SYSTEM, SYSTEM)
     command5 = "cp {}.mol2 tmp.mol2".format(SYSTEM)
     
     subprocess.call(command1, shell=True)
